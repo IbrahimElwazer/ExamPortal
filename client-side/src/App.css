@@ -1,0 +1,13 @@
+.App {
+  text-align: center;
+}
+
+input{
+  margin: 5px;
+}
+
+button{
+  width: 20%;
+  margin: 10px;
+}
+
