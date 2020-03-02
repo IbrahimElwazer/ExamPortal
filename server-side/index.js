@@ -1,8 +1,8 @@
 const express = require('express');
 const cors = require('cors');
+require('dotenv').config()
 const app = express();
 const bodyParser = require('body-parser');
-const db = require('./database');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const User = require('./models/User');
@@ -39,16 +39,14 @@ app.post('/register', (req, res) => {
                 User.create(userData)
                 .then(user => {
                     res.json({status: user.email + ' has been registered successfully!'})
-                })
-                .catch(err => {
+                }).catch(err => {
                     res.send('error: ' + err)
                 })
             })
         }else{
             res.json({error: "This user already exists"})
         }
-    })
-    .catch(err => {
+    }).catch(err => {
         res.send('error: ' + err)
     })
 })
@@ -63,20 +61,23 @@ app.post('/login', (req, res) => {
     })
     .then(user => {
         if(user){
-            if(bcrypt.compareSync(req.body.password, user.password)){
-                let token = jwt.sign(user.dataValues, 'secret', {
-                    expiresIn: 1440
-                })
-                res.send(token)
-            }
-        }else{
-            res.status(400).json({ error: 'User does not exist !'})
-        }
-    })
-    .catch(err => {
-        res.status(400).json({error: err})
-    })
-})
+            bcrypt.compareSync(req.body.password, user.password).then(password => {
+                if(password){
+                    let token = jwt.sign(user.email, process.env.SECRET_KEY)
+                    res.send(token);
+                } else {
+                    res.send("Incorrect password entered")
+                }
+            }).catch(err => {
+                res.send(err)
+            });
+        } else{
+            res.send("Incorrect username entered!")
+        }   
+    }).catch(err => {
+        res.send(err)
+    });
+});
 
 app.get('/questions', (req, res) => {
     Question.findAll()
